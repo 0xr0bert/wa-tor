@@ -1,5 +1,5 @@
-use rand::seq::SliceRandom;
 use rand::RngExt;
+use rand::seq::SliceRandom;
 use std::fmt;
 
 pub struct Config {

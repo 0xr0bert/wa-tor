@@ -12,8 +12,15 @@ struct Config {
 #[derive(Clone, Copy, PartialEq)]
 enum Cell {
     Empty,
-    Fish { age: u32, last_update: u32 },
-    Shark { age: u32, energy: u32, last_update: u32 },
+    Fish {
+        age: u32,
+        last_update: u32,
+    },
+    Shark {
+        age: u32,
+        energy: u32,
+        last_update: u32,
+    },
 }
 
 struct World {
@@ -27,7 +34,13 @@ struct World {
 impl World {
     pub fn new(width: usize, height: usize, config: Config) -> Self {
         let grid = vec![Cell::Empty; width * height];
-        let mut world = Self { width, height, grid, current_tick: 0, config };
+        let mut world = Self {
+            width,
+            height,
+            grid,
+            current_tick: 0,
+            config,
+        };
         world.populate_initial_state();
         world
     }
@@ -50,10 +63,22 @@ impl World {
         let iy = y as isize;
 
         vec![
-            (self.get_wrapped_coord(ix, self.width), self.get_wrapped_coord(iy - 1, self.height)),
-            (self.get_wrapped_coord(ix, self.width), self.get_wrapped_coord(iy + 1, self.height)),
-            (self.get_wrapped_coord(ix - 1, self.width), self.get_wrapped_coord(iy, self.height)),
-            (self.get_wrapped_coord(ix + 1, self.width), self.get_wrapped_coord(iy, self.height)),
+            (
+                self.get_wrapped_coord(ix, self.width),
+                self.get_wrapped_coord(iy - 1, self.height),
+            ),
+            (
+                self.get_wrapped_coord(ix, self.width),
+                self.get_wrapped_coord(iy + 1, self.height),
+            ),
+            (
+                self.get_wrapped_coord(ix - 1, self.width),
+                self.get_wrapped_coord(iy, self.height),
+            ),
+            (
+                self.get_wrapped_coord(ix + 1, self.width),
+                self.get_wrapped_coord(iy, self.height),
+            ),
         ]
     }
 
@@ -83,15 +108,23 @@ impl World {
             let target_index = self.get_ix(new_x, new_y);
             let old_index = self.get_ix(x, y);
             self.grid[target_index] = self.grid[old_index];
-            if let Cell::Fish { age, .. } = self.grid[old_index] && age >= self.config.fish_breed_time {
-                self.grid[old_index] = Cell::Fish { age: age + 1, last_update: self.current_tick };
+            if let Cell::Fish { age, .. } = self.grid[old_index]
+                && age >= self.config.fish_breed_time
+            {
+                self.grid[old_index] = Cell::Fish {
+                    age: age + 1,
+                    last_update: self.current_tick,
+                };
             } else {
                 self.grid[old_index] = Cell::Empty;
             }
         } else {
             let ix = self.get_ix(x, y);
             if let Cell::Fish { age, .. } = self.grid[ix] {
-                self.grid[ix] = Cell::Fish { age: age + 1, last_update: self.current_tick };
+                self.grid[ix] = Cell::Fish {
+                    age: age + 1,
+                    last_update: self.current_tick,
+                };
             }
         }
     }
@@ -104,7 +137,8 @@ impl World {
     }
 
     fn process_shark(&mut self, x: usize, y: usize) {
-        let fish_cells: Vec<(usize, usize)> = self.get_neighbours(x, y)
+        let fish_cells: Vec<(usize, usize)> = self
+            .get_neighbours(x, y)
             .into_iter()
             .filter(|&(x, y)| matches!(self.grid[self.get_ix(x, y)], Cell::Fish { .. }))
             .collect();
@@ -116,7 +150,11 @@ impl World {
             let target_index = self.get_ix(new_x, new_y);
             let old_index = self.get_ix(x, y);
             if let Cell::Shark { age, .. } = self.grid[old_index] {
-                self.grid[target_index] = Cell::Shark { energy: self.config.shark_start_energy, last_update: self.current_tick, age: age + 1};
+                self.grid[target_index] = Cell::Shark {
+                    energy: self.config.shark_start_energy,
+                    last_update: self.current_tick,
+                    age: age + 1,
+                };
                 self.grid[old_index] = Cell::Empty;
             } else {
                 panic!("Shark is not a shark");
@@ -131,7 +169,11 @@ impl World {
                 let target_index = self.get_ix(new_x, new_y);
                 let old_index = self.get_ix(x, y);
                 if let Cell::Shark { energy, age, .. } = self.grid[old_index] {
-                    self.grid[target_index] = Cell::Shark { energy: energy - 1, last_update: self.current_tick, age: age + 1};
+                    self.grid[target_index] = Cell::Shark {
+                        energy: energy - 1,
+                        last_update: self.current_tick,
+                        age: age + 1,
+                    };
                     self.grid[old_index] = Cell::Empty;
                 } else {
                     panic!("Shark is not a shark");
@@ -139,7 +181,11 @@ impl World {
             } else {
                 let ix = self.get_ix(x, y);
                 if let Cell::Shark { energy, age, .. } = self.grid[ix] {
-                    self.grid[ix] = Cell::Shark { energy, last_update: self.current_tick, age: age + 1};
+                    self.grid[ix] = Cell::Shark {
+                        energy,
+                        last_update: self.current_tick,
+                        age: age + 1,
+                    };
                 }
             }
         }
@@ -159,7 +205,7 @@ impl World {
             let starting_age = rng.random_range(0..self.config.fish_breed_time);
             self.grid[ix] = Cell::Fish {
                 age: starting_age,
-                last_update: 0
+                last_update: 0,
             };
         }
 
@@ -169,7 +215,7 @@ impl World {
             self.grid[ix] = Cell::Shark {
                 age: starting_age,
                 energy: self.config.shark_start_energy,
-                last_update: 0
+                last_update: 0,
             };
         }
     }
